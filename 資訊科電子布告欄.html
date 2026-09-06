@@ -352,6 +352,15 @@
         let currentUser = null;
         let currentTabKey = 'home';
         let pendingDeletePostId = null;
+        let isLocalMode = false;
+
+        // 本地預設/記憶體資料 (離線或未配置 Firebase 時使用)
+        const localPosts = {
+            'tab1': [
+                { id: 'local-1', title: '做好事、說好話、存好心 🌸', author: '導師', content: '歡迎大家來到角落班級布告欄！請保持禮貌與愛心，共同營造美好的班級環境。', createdAt: { seconds: Math.floor(Date.now()/1000) } }
+            ],
+            'tab2': [], 'tab3': [], 'tab4': [], 'tab5': [], 'tab6': [], 'tab7': [], 'tab8': []
+        };
 
         // 班級預設驗證密碼
         const ADMIN_PASSWORD = "1234";
@@ -373,7 +382,8 @@
             try {
                 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
                 if (!firebaseConfig) {
-                    document.getElementById('userStatus').innerText = '未配置 Firebase (離線模式)';
+                    isLocalMode = true;
+                    document.getElementById('userStatus').innerText = '單機離線模式 (自由發布)';
                     return;
                 }
 
@@ -390,7 +400,7 @@
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
-                        document.getElementById('userStatus').innerText = '雲端防護同步中';
+                        document.getElementById('userStatus').innerText = '雲端連線同步中';
                         if (currentTabKey !== 'home') {
                             listenPosts(currentTabKey);
                         }
@@ -399,7 +409,8 @@
 
             } catch (err) {
                 console.error("Firebase Auth Error:", err);
-                document.getElementById('userStatus').innerText = '連線異常';
+                isLocalMode = true;
+                document.getElementById('userStatus').innerText = '單機離線模式 (自由發布)';
             }
         }
 
@@ -455,14 +466,21 @@
                 tagElem.innerText = config.tag;
                 tagElem.className = `px-3 py-1 font-bold rounded-full text-xs ${config.color} ${config.text}`;
 
-                listenPosts(tabKey);
+                if (isLocalMode || !db) {
+                    renderPosts(localPosts[tabKey] || []);
+                } else {
+                    listenPosts(tabKey);
+                }
             }
         };
 
         // 監聽 Firestore 貼文
         let unsubscribe = null;
         function listenPosts(tabKey) {
-            if (!db || !currentUser) return;
+            if (!db || !currentUser) {
+                renderPosts(localPosts[tabKey] || []);
+                return;
+            }
 
             if (unsubscribe) unsubscribe();
 
@@ -479,6 +497,7 @@
                 renderPosts(posts);
             }, (error) => {
                 console.error("Firestore error:", error);
+                renderPosts(localPosts[tabKey] || []);
             });
         }
 
@@ -545,10 +564,6 @@
         // 提交文章（含密碼驗證）
         window.handlePostSubmit = async function(e) {
             e.preventDefault();
-            if (!db || !currentUser) {
-                showMessageModal("連線失敗", "雲端伺服器連線尚未完成，請稍候再試。", true);
-                return;
-            }
 
             const inputPassword = document.getElementById('postPassword').value.trim();
             if (inputPassword !== ADMIN_PASSWORD) {
@@ -560,6 +575,24 @@
             const author = document.getElementById('postAuthor').value;
             const content = document.getElementById('postContent').value;
             const fileUrl = document.getElementById('postFileUrl').value;
+
+            // 單機/離線模式下直接更新記憶體，不阻擋發布
+            if (isLocalMode || !db || !currentUser) {
+                const newPost = {
+                    id: 'local-' + Date.now(),
+                    title,
+                    author,
+                    content,
+                    fileUrl: fileUrl || null,
+                    createdAt: { seconds: Math.floor(Date.now() / 1000) }
+                };
+                if (!localPosts[currentTabKey]) localPosts[currentTabKey] = [];
+                localPosts[currentTabKey].unshift(newPost);
+                renderPosts(localPosts[currentTabKey]);
+                closePublishModal();
+                showMessageModal("發布成功 🌸", "您的公告已成功發布！（目前為單機模式）", false);
+                return;
+            }
 
             try {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -602,6 +635,17 @@
             if (inputPassword !== ADMIN_PASSWORD) {
                 closeDeleteModal();
                 showMessageModal("🔒 刪除失敗", "管理密碼輸入錯誤！無法進行刪除操作。(預設密碼: 1234)", true);
+                return;
+            }
+
+            // 單機/離線模式刪除
+            if (isLocalMode || !db) {
+                if (localPosts[currentTabKey]) {
+                    localPosts[currentTabKey] = localPosts[currentTabKey].filter(p => p.id !== pendingDeletePostId);
+                    renderPosts(localPosts[currentTabKey]);
+                }
+                closeDeleteModal();
+                showMessageModal("刪除成功", "該篇公告已順利刪除。", false);
                 return;
             }
 
