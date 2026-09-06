@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角落角落 - 班級電子布告欄</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Round & Cute Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            bg: '#FFFDF0',        /* 奶油暖白底色 */
+                            yellow: '#FFF3B0',    /* 炸蝦/小黃 */
+                            green: '#E2F0CB',     /* 河童企鵝 */
+                            blue: '#C7CEEA',      /* 蜥蜴/偽裝水怪 */
+                            pink: '#FFC6FF',      /* 貓咪/包袱巾粉 */
+                            brown: '#E8DFF5',     /* 炸豬排/奶茶 */
+                            card: '#FFFFFF',
+                            text: '#5A4E44'       /* 柔和深棕色字體 */
+                        }
+                    },
+                    fontFamily: {
+                        cute: ['Zen Maru Gothic', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FFFDF0;
+            color: #5A4E44;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-image: radial-gradient(#E8DFF5 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        .soft-shadow {
+            box-shadow: 0 8px 20px -4px rgba(90, 78, 68, 0.12), 0 4px 6px -2px rgba(90, 78, 68, 0.05);
+        }
+        .soft-shadow-hover:hover {
+            box-shadow: 0 12px 25px -4px rgba(90, 78, 68, 0.18), 0 6px 10px -2px rgba(90, 78, 68, 0.08);
+            transform: translateY(-3px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+    <!-- 頂部導覽列 Header -->
+    <header class="max-w-6xl mx-auto w-full bg-white/80 backdrop-blur-md rounded-3xl p-4 md:p-6 mb-6 soft-shadow flex flex-wrap justify-between items-center border-2 border-pastel-yellow">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+            <div class="w-12 h-12 bg-pastel-yellow rounded-2xl flex items-center justify-center text-2xl shadow-inner text-amber-600">
+                <i class="fa-solid font-bold fa-shapes"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-wide text-amber-800">角落溫馨布告欄</h1>
+                <p class="text-xs text-amber-600 font-bold">資訊科 班級專用電子交流板 (已開啟安全密碼鎖🔒)</p>
+            </div>
+        </div>
+        
+        <div id="userInfo" class="text-sm bg-pastel-green/50 px-4 py-2 rounded-full font-bold text-emerald-800 flex items-center gap-2 mt-2 sm:mt-0">
+            <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span id="userStatus">雲端同步中...</span>
+        </div>
+    </header>
+
+    <!-- 主要內容區 Main Content -->
+    <main class="max-w-6xl mx-auto w-full flex-1">
+        
+        <!-- 頁籤選單 Nav Tabs -->
+        <nav class="flex overflow-x-auto gap-3 pb-4 mb-6 no-scrollbar">
+            <button onclick="switchTab('home')" id="btn-home" class="nav-btn bg-pastel-yellow text-amber-900 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-house mr-2"></i>主頁總覽
+            </button>
+            <button onclick="switchTab('tab1')" id="btn-tab1" class="nav-btn bg-white hover:bg-pastel-pink text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-heart mr-2"></i>1. 三好校園專區
+            </button>
+            <button onclick="switchTab('tab2')" id="btn-tab2" class="nav-btn bg-white hover:bg-pastel-green text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-scroll mr-2"></i>2. 班級公約
+            </button>
+            <button onclick="switchTab('tab3')" id="btn-tab3" class="nav-btn bg-white hover:bg-pastel-blue text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-comments mr-2"></i>3. 班會報告
+            </button>
+            <button onclick="switchTab('tab4')" id="btn-tab4" class="nav-btn bg-white hover:bg-pastel-yellow text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-sun mr-2"></i>4. 生活公約
+            </button>
+            <button onclick="switchTab('tab5')" id="btn-tab5" class="nav-btn bg-white hover:bg-pastel-brown text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-scale-balanced mr-2"></i>5. 法治教育
+            </button>
+            <button onclick="switchTab('tab6')" id="btn-tab6" class="nav-btn bg-white hover:bg-pastel-green text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-leaf mr-2"></i>6. 永續發展
+            </button>
+            <button onclick="switchTab('tab7')" id="btn-tab7" class="nav-btn bg-white hover:bg-pastel-pink text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-seedling mr-2"></i>7. 生命教育
+            </button>
+            <button onclick="switchTab('tab8')" id="btn-tab8" class="nav-btn bg-white hover:bg-pastel-blue text-slate-700 px-5 py-3 rounded-2xl font-bold whitespace-nowrap soft-shadow transition-all">
+                <i class="fa-solid fa-water mr-2"></i>8. 海洋教育
+            </button>
+        </nav>
+
+        <!-- 視窗內容 1：首頁 (主頁總覽) -->
+        <section id="view-home" class="tab-view">
+            <div class="bg-amber-100/60 border-2 border-dashed border-amber-300 p-6 rounded-3xl mb-8 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-amber-900 mb-1">歡迎來到角落班級布告欄！🌸</h2>
+                    <p class="text-sm text-amber-700">點擊下方小卡片，即可閱讀文章或發布資訊！發布/刪除預設密碼為 <code class="bg-amber-200 px-2 py-0.5 rounded text-amber-950 font-mono font-bold">1234</code></p>
+                </div>
+                <div class="hidden sm:block text-4xl">🐱🐶🐧🐻</div>
+            </div>
+
+            <!-- 八大分區卡片網格 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div onclick="switchTab('tab1')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-pink transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-pink/50 rounded-2xl flex items-center justify-center text-pink-600 text-xl font-bold mb-4">01</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">三好校園專區</h3>
+                        <p class="text-xs text-slate-500">做好事、說好話、存好心，營造溫馨校園氛圍。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-pink-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div onclick="switchTab('tab2')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-green transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-green/50 rounded-2xl flex items-center justify-center text-emerald-600 text-xl font-bold mb-4">02</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">班級公約</h3>
+                        <p class="text-xs text-slate-500">共同維護良好課堂秩序與團體榮譽規範。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-emerald-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div onclick="switchTab('tab3')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-blue transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-blue/50 rounded-2xl flex items-center justify-center text-indigo-600 text-xl font-bold mb-4">03</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">班會報告</h3>
+                        <p class="text-xs text-slate-500">每週班會記錄、提案討論與決議事項彙整。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-indigo-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div onclick="switchTab('tab4')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-yellow transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-yellow rounded-2xl flex items-center justify-center text-amber-600 text-xl font-bold mb-4">04</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">生活公約</h3>
+                        <p class="text-xs text-slate-500">值日生工作、環境衛生與每日生活小提醒。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-amber-600">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div onclick="switchTab('tab5')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-brown transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-brown/50 rounded-2xl flex items-center justify-center text-purple-600 text-xl font-bold mb-4">05</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">法治教育</h3>
+                        <p class="text-xs text-slate-500">網路素養、著作權觀念與校園法律常識宣導。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-purple-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div onclick="switchTab('tab6')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-green transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-green/50 rounded-2xl flex items-center justify-center text-teal-600 text-xl font-bold mb-4">06</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">永續發展 (SDGs)</h3>
+                        <p class="text-xs text-slate-500">環保節能、垃圾減量與永續校園生活實踐。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-teal-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 7 -->
+                <div onclick="switchTab('tab7')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-pink transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-pink/50 rounded-2xl flex items-center justify-center text-rose-600 text-xl font-bold mb-4">07</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">生命教育</h3>
+                        <p class="text-xs text-slate-500">尊重生命、情緒管理與關懷身心健康資訊。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-rose-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+
+                <!-- Card 8 -->
+                <div onclick="switchTab('tab8')" class="cursor-pointer bg-white p-6 rounded-3xl soft-shadow soft-shadow-hover border-b-8 border-pastel-blue transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-pastel-blue/50 rounded-2xl flex items-center justify-center text-cyan-600 text-xl font-bold mb-4">08</div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">海洋教育</h3>
+                        <p class="text-xs text-slate-500">親海、知海、愛海，認識海洋生態與保護。</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs font-bold text-cyan-500">
+                        <span>進入專區</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 通用分區面板模板 -->
+        <section id="view-detail" class="tab-view hidden">
+            <div class="bg-white rounded-3xl p-6 md:p-8 soft-shadow border-4 border-pastel-yellow">
+                
+                <!-- 標頭 -->
+                <div class="flex flex-wrap justify-between items-center pb-6 mb-6 border-b-2 border-slate-100">
+                    <div>
+                        <span id="detail-tag" class="px-3 py-1 bg-pastel-pink text-pink-700 font-bold rounded-full text-xs">專區</span>
+                        <h2 id="detail-title" class="text-2xl font-black text-slate-800 mt-2">專區名稱</h2>
+                    </div>
+                    <button onclick="openPublishModal()" class="mt-2 sm:mt-0 bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold px-6 py-3 rounded-2xl soft-shadow transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i>新增貼文/公告
+                    </button>
+                </div>
+
+                <!-- 文章列表容器 -->
+                <div id="posts-container" class="space-y-6">
+                    <!-- 動態渲染文章卡片 -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 發布/編輯 彈出視窗 (Modal) -->
+    <div id="publishModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6 soft-shadow border-4 border-pastel-yellow relative">
+            <button onclick="closePublishModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-pen-nib text-amber-500"></i>
+                <span id="modal-title">發布新資訊</span>
+            </h3>
+
+            <form id="postForm" onsubmit="handlePostSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">標題</label>
+                    <input type="text" id="postTitle" required placeholder="請輸入主題名稱..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-300 font-bold text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">發布者 / 負責人</label>
+                    <input type="text" id="postAuthor" required placeholder="例如：學藝股長 / 王小明" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-300 font-bold text-slate-800">
+                </div>
+
+                <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200">
+                    <label class="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-amber-600"></i> 發布授權密碼 (必填)
+                    </label>
+                    <input type="password" id="postPassword" required placeholder="請輸入授權密碼 (預設: 1234)" class="w-full px-4 py-2.5 rounded-xl bg-white border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 font-bold text-slate-800">
+                    <p class="text-[11px] text-amber-700 mt-1 font-bold">* 預設密碼為 <span class="underline">1234</span>，防止他人任意刊登公告。</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">詳細內容</label>
+                    <textarea id="postContent" rows="4" required placeholder="在此輸入公告詳細內容..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-300 font-bold text-slate-800"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">附加檔案/圖片網址 (可選)</label>
+                    <input type="url" id="postFileUrl" placeholder="https://example.com/file.pdf" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-300 font-bold text-slate-800">
+                </div>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="closePublishModal()" class="px-5 py-2.5 rounded-xl text-slate-500 font-bold hover:bg-slate-100">取消</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold soft-shadow">驗證密碼並發布</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 自訂刪除密碼驗證 Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 soft-shadow border-4 border-rose-300 relative text-center">
+            <div class="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3 text-rose-500 text-2xl">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">刪除公告防護</h3>
+            <p class="text-xs text-slate-500 mb-4">請輸入管理授權密碼以確認刪除。</p>
+
+            <input type="password" id="deletePasswordInput" placeholder="請輸入密碼 (預設: 1234)" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-rose-200 focus:outline-none focus:ring-2 focus:ring-rose-400 text-center font-bold mb-4">
+
+            <div class="flex gap-2 justify-center">
+                <button onclick="closeDeleteModal()" class="w-1/2 py-2.5 rounded-xl text-slate-600 font-bold bg-slate-100 hover:bg-slate-200">取消</button>
+                <button onclick="confirmDeletePost()" class="w-1/2 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold soft-shadow">確認刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自訂訊息提示 Modal (取代原生的 alert) -->
+    <div id="msgModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 soft-shadow border-4 border-pastel-yellow relative text-center">
+            <div id="msgIconContainer" class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 text-amber-600 text-xl">
+                <i id="msgIcon" class="fa-solid fa-lock"></i>
+            </div>
+            <h3 id="msgTitle" class="text-lg font-black text-slate-800 mb-2">標題</h3>
+            <p id="msgText" class="text-sm text-slate-600 mb-6 whitespace-pre-line font-bold">說明內容...</p>
+
+            <button onclick="closeMsgModal()" class="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold soft-shadow">知道了</button>
+        </div>
+    </div>
+
+    <!-- 頁尾 Footer -->
+    <footer class="max-w-6xl mx-auto w-full text-center py-6 mt-8 text-xs font-bold text-slate-400">
+        <p>角落風格班級電子布告欄系統 &copy; 2026 資訊科專題實作</p>
+    </footer>
+
+    <!-- Firebase SDK (Modular v11) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 全域變數
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let currentTabKey = 'home';
+        let pendingDeletePostId = null;
+
+        // 班級預設驗證密碼
+        const ADMIN_PASSWORD = "1234";
+
+        // 專區對照表
+        const tabConfigs = {
+            'tab1': { name: '三好校園專區', tag: '三好校園', color: 'bg-pastel-pink', text: 'text-pink-700' },
+            'tab2': { name: '班級公約', tag: '公約規範', color: 'bg-pastel-green', text: 'text-emerald-700' },
+            'tab3': { name: '班會報告', tag: '會議記錄', color: 'bg-pastel-blue', text: 'text-indigo-700' },
+            'tab4': { name: '生活公約', tag: '日常宣導', color: 'bg-pastel-yellow', text: 'text-amber-800' },
+            'tab5': { name: '法治教育', tag: '法治素養', color: 'bg-pastel-brown', text: 'text-purple-700' },
+            'tab6': { name: '永續發展', tag: 'SDGs 環保', color: 'bg-pastel-green', text: 'text-teal-700' },
+            'tab7': { name: '生命教育', tag: '生命關懷', color: 'bg-pastel-pink', text: 'text-rose-700' },
+            'tab8': { name: '海洋教育', tag: '海洋生態', color: 'bg-pastel-blue', text: 'text-cyan-700' }
+        };
+
+        // 初始化 Firebase
+        async function initFirebase() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                if (!firebaseConfig) {
+                    document.getElementById('userStatus').innerText = '未配置 Firebase (離線模式)';
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userStatus').innerText = '雲端防護同步中';
+                        if (currentTabKey !== 'home') {
+                            listenPosts(currentTabKey);
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Firebase Auth Error:", err);
+                document.getElementById('userStatus').innerText = '連線異常';
+            }
+        }
+
+        // 自訂 Alert UI 函式
+        window.showMessageModal = function(title, text, isError = false) {
+            document.getElementById('msgTitle').innerText = title;
+            document.getElementById('msgText').innerText = text;
+            const icon = document.getElementById('msgIcon');
+            const iconBg = document.getElementById('msgIconContainer');
+
+            if (isError) {
+                icon.className = 'fa-solid fa-triangle-exclamation';
+                iconBg.className = 'w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3 text-rose-600 text-xl';
+            } else {
+                icon.className = 'fa-solid fa-circle-check';
+                iconBg.className = 'w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-600 text-xl';
+            }
+            document.getElementById('msgModal').classList.remove('hidden');
+        };
+
+        window.closeMsgModal = function() {
+            document.getElementById('msgModal').classList.add('hidden');
+        };
+
+        // 頁籤切換邏輯
+        window.switchTab = function(tabKey) {
+            currentTabKey = tabKey;
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-pastel-yellow', 'text-amber-900');
+                btn.classList.add('bg-white', 'text-slate-700');
+            });
+
+            const activeBtn = document.getElementById(`btn-${tabKey}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'text-slate-700');
+                activeBtn.classList.add('bg-pastel-yellow', 'text-amber-900');
+            }
+
+            const viewHome = document.getElementById('view-home');
+            const viewDetail = document.getElementById('view-detail');
+
+            if (tabKey === 'home') {
+                viewHome.classList.remove('hidden');
+                viewDetail.classList.add('hidden');
+            } else {
+                viewHome.classList.add('hidden');
+                viewDetail.classList.remove('hidden');
+
+                const config = tabConfigs[tabKey];
+                document.getElementById('detail-title').innerText = config.name;
+                const tagElem = document.getElementById('detail-tag');
+                tagElem.innerText = config.tag;
+                tagElem.className = `px-3 py-1 font-bold rounded-full text-xs ${config.color} ${config.text}`;
+
+                listenPosts(tabKey);
+            }
+        };
+
+        // 監聽 Firestore 貼文
+        let unsubscribe = null;
+        function listenPosts(tabKey) {
+            if (!db || !currentUser) return;
+
+            if (unsubscribe) unsubscribe();
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const postsRef = collection(db, 'artifacts', appId, 'public', 'data', `bulletin_${tabKey}`);
+
+            unsubscribe = onSnapshot(postsRef, (snapshot) => {
+                const posts = [];
+                snapshot.forEach((doc) => {
+                    posts.push({ id: doc.id, ...doc.data() });
+                });
+
+                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                renderPosts(posts);
+            }, (error) => {
+                console.error("Firestore error:", error);
+            });
+        }
+
+        // 渲染文章列表
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
+                        <p class="font-bold">目前此專區尚無公告內容</p>
+                        <p class="text-xs">點擊右上角「新增貼文/公告」開始編輯吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = posts.map(post => `
+                <div class="bg-amber-50/50 p-6 rounded-2xl border border-amber-100 flex flex-col justify-between relative group">
+                    <button onclick="promptDeletePost('${post.id}')" title="刪除此公告" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition-colors p-2">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-bold text-amber-700 bg-amber-200/60 px-2.5 py-0.5 rounded-md">
+                                ${escapeHtml(post.author || '匿名')}
+                            </span>
+                            <span class="text-[10px] text-slate-400">
+                                ${post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleString() : '剛才'}
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">${escapeHtml(post.title)}</h3>
+                        <p class="text-sm text-slate-600 whitespace-pre-wrap leading-relaxed">${escapeHtml(post.content)}</p>
+                        
+                        ${post.fileUrl ? `
+                            <div class="mt-4 p-3 bg-white rounded-xl border border-amber-200/60 flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                    <i class="fa-solid fa-paperclip text-amber-500"></i>
+                                    <span class="truncate max-w-[200px] sm:max-w-xs">${escapeHtml(post.fileUrl)}</span>
+                                </div>
+                                <a href="${escapeHtml(post.fileUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-600 hover:underline font-bold">開啟連結</a>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // 發布 Modal 控制
+        window.openPublishModal = function() {
+            document.getElementById('publishModal').classList.remove('hidden');
+        };
+
+        window.closePublishModal = function() {
+            document.getElementById('publishModal').classList.add('hidden');
+            document.getElementById('postForm').reset();
+        };
+
+        // 提交文章（含密碼驗證）
+        window.handlePostSubmit = async function(e) {
+            e.preventDefault();
+            if (!db || !currentUser) {
+                showMessageModal("連線失敗", "雲端伺服器連線尚未完成，請稍候再試。", true);
+                return;
+            }
+
+            const inputPassword = document.getElementById('postPassword').value.trim();
+            if (inputPassword !== ADMIN_PASSWORD) {
+                showMessageModal("🔒 密碼驗證失敗！", `您輸入的授權密碼錯誤！\n\n預設授權密碼為：1234`, true);
+                return;
+            }
+
+            const title = document.getElementById('postTitle').value;
+            const author = document.getElementById('postAuthor').value;
+            const content = document.getElementById('postContent').value;
+            const fileUrl = document.getElementById('postFileUrl').value;
+
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const postsRef = collection(db, 'artifacts', appId, 'public', 'data', `bulletin_${currentTabKey}`);
+
+                await addDoc(postsRef, {
+                    title,
+                    author,
+                    content,
+                    fileUrl: fileUrl || null,
+                    createdAt: serverTimestamp(),
+                    userId: currentUser.uid
+                });
+
+                closePublishModal();
+                showMessageModal("發布成功 🌸", "您的公告已順利透過驗證並同步至雲端！", false);
+            } catch (err) {
+                console.error("Error adding post: ", err);
+                showMessageModal("發布失敗", "發生未知錯誤，請重試。", true);
+            }
+        };
+
+        // 刪除對話框控制
+        window.promptDeletePost = function(postId) {
+            pendingDeletePostId = postId;
+            document.getElementById('deletePasswordInput').value = '';
+            document.getElementById('deleteModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = function() {
+            pendingDeletePostId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        };
+
+        // 確認刪除文章（含密碼驗證）
+        window.confirmDeletePost = async function() {
+            if (!pendingDeletePostId) return;
+
+            const inputPassword = document.getElementById('deletePasswordInput').value.trim();
+            if (inputPassword !== ADMIN_PASSWORD) {
+                closeDeleteModal();
+                showMessageModal("🔒 刪除失敗", "管理密碼輸入錯誤！無法進行刪除操作。(預設密碼: 1234)", true);
+                return;
+            }
+
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', `bulletin_${currentTabKey}`, pendingDeletePostId);
+                await deleteDoc(docRef);
+                closeDeleteModal();
+                showMessageModal("刪除成功", "該篇公告已順利刪除。", false);
+            } catch (err) {
+                console.error("Error deleting post: ", err);
+                closeDeleteModal();
+                showMessageModal("刪除失敗", "無法完成刪除操作，請稍後再試。", true);
+            }
+        };
+
+        window.onload = () => {
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
